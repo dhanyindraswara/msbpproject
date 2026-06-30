@@ -77,7 +77,7 @@ export default function DetailDrawer({
         }}
       >
         {/* header */}
-        <div style={{ padding: '18px 26px', borderBottom: '1px solid #E6E8EC', background: '#fff' }}>
+        <div className="msbp-drawer-pad" style={{ padding: '18px 26px', borderBottom: '1px solid #E6E8EC', background: '#fff' }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div
@@ -151,7 +151,7 @@ export default function DetailDrawer({
         </div>
 
         {/* body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '22px 26px' }}>
+        <div className="msbp-drawer-pad" style={{ flex: 1, overflowY: 'auto', padding: '22px 26px' }}>
           <div style={{ display: 'flex', gap: 12, marginBottom: 20 }}>
             <div style={{ flex: 1, background: '#fff', border: '1px solid #E6E8EC', borderRadius: 14, padding: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
@@ -262,7 +262,7 @@ export default function DetailDrawer({
             <input value={d.team} onChange={onD.team} placeholder="e.g. ALR, RRP" className="msbp-in" style={textInput} />
           </label>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
+          <div className="msbp-drawer-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 22 }}>
             <label style={{ display: 'block' }}>
               <span style={fieldLabel}>Start date</span>
               <input type="date" value={d.startDate || ''} onChange={onD.startDate} className="msbp-in" style={{ ...textInput, padding: '8px 9px', fontSize: 12 }} />
@@ -401,7 +401,7 @@ export default function DetailDrawer({
         </div>
 
         {/* footer */}
-        <div style={{ padding: '15px 26px', borderTop: '1px solid #E6E8EC', background: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="msbp-drawer-pad" style={{ padding: '15px 26px', borderTop: '1px solid #E6E8EC', background: '#fff', display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             onClick={onDelete}
             className="msbp-ghost"

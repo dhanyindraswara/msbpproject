@@ -17,13 +17,13 @@ const sub = { fontSize: 11.5, fontWeight: 600, color: '#7A8696', marginTop: 6 }
 
 export default function KpiCards({ kpi, cols }) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: cols, gap: 14, marginBottom: 22 }}>
-      <div style={card}>
+    <div className="msbp-kpi" style={{ display: 'grid', gridTemplateColumns: cols, gap: 14, marginBottom: 22 }}>
+      <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#02A0C1' }}>Total projects</div>
         <div style={num}>{kpi.total}</div>
         <div style={sub}>{kpi.shown} shown now</div>
       </div>
-      <div style={card}>
+      <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#7A8696' }}>Avg progress</div>
         <div style={num}>
           {kpi.avg}
@@ -48,19 +48,19 @@ export default function KpiCards({ kpi, cols }) {
           />
         </div>
       </div>
-      <div style={card}>
+      <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#1F9D6B' }}>Completed</div>
         <div style={num}>{kpi.completed}</div>
         <div style={sub}>{kpi.completedPct}% of total</div>
       </div>
-      <div style={card}>
+      <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#0284A8' }}>In progress</div>
         <div style={num}>{kpi.progress}</div>
         <div style={sub}>
           {kpi.open} open · {kpi.hold} hold
         </div>
       </div>
-      <div style={card}>
+      <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#C0392B' }}>At risk / overdue</div>
         <div style={num}>{kpi.risk}</div>
         <div style={sub}>need attention</div>
