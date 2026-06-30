@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  collection,
-  doc,
-  getDocs,
-  onSnapshot,
-  setDoc,
-  deleteDoc,
-  writeBatch,
-} from 'firebase/firestore'
-import { db, isShared, COLLECTION } from './firebase.js'
+import { isShared, COLLECTION, getDb } from './firebase.js'
 import { normalize } from './helpers.js'
 
 const KEY = 'msbp_projects_v2'
@@ -34,17 +25,31 @@ function writeLocal(all) {
   }
 }
 
-// Load the static seed shipped with the app (also the people directory).
-async function loadSeed() {
+// People directory is tiny (~0.7 KB) and always needed for the email composer.
+async function loadDirectory() {
+  try {
+    const res = await fetch(import.meta.env.BASE_URL + 'data/people.json')
+    const people = await res.json()
+    const dir = {}
+    for (const pr of people || []) dir[pr.code] = pr.email
+    return dir
+  } catch (e) {
+    console.warn('people load failed', e)
+    return {}
+  }
+}
+
+// The full 242-project seed (~191 KB). Only fetched when actually needed:
+// local mode, or first-run seeding of an empty Firestore collection. Shared
+// mode normally skips this entirely — the data comes from Firestore.
+async function loadSeedProjects() {
   try {
     const res = await fetch(import.meta.env.BASE_URL + 'data/projects.json')
     const json = await res.json()
-    const dir = {}
-    for (const pr of json.people || []) dir[pr.code] = pr.email
-    return { projects: json.projects || [], dir }
+    return json.projects || []
   } catch (e) {
     console.warn('seed load failed', e)
-    return { projects: [], dir: {} }
+    return []
   }
 }
 
@@ -69,24 +74,28 @@ export function useStore() {
     let unsubscribe = null
 
     async function init() {
-      const seed = await loadSeed()
+      dirRef.current = await loadDirectory()
       if (cancelled) return
-      dirRef.current = seed.dir
 
       if (isShared) {
+        const db = await getDb()
+        const { collection, doc, getDocs, onSnapshot, writeBatch } = await import('firebase/firestore')
+        if (cancelled) return
         const colRef = collection(db, COLLECTION)
 
         // Pull current docs; seed the collection on first run if empty.
         try {
           const snap = await getDocs(colRef)
           if (cancelled) return
-          if (snap.empty && seed.projects.length) {
-            const batch = writeBatch(db)
-            for (const p of seed.projects) {
-              batch.set(doc(colRef, String(p.id)), clean(normalize(p)))
+          if (snap.empty) {
+            const seed = await loadSeedProjects()
+            if (cancelled) return
+            if (seed.length) {
+              const batch = writeBatch(db)
+              for (const p of seed) batch.set(doc(colRef, String(p.id)), clean(normalize(p)))
+              await batch.commit()
+              setAll(seed.map((p) => normalize(p)))
             }
-            await batch.commit()
-            setAll(seed.projects.map((p) => normalize(p)))
           } else {
             setAll(snap.docs.map((d) => normalize(d.data())))
           }
@@ -99,14 +108,13 @@ export function useStore() {
         // Live updates from anyone else (also keeps this tab authoritative).
         unsubscribe = onSnapshot(
           colRef,
-          (snapshot) => {
-            setAll(snapshot.docs.map((d) => normalize(d.data())))
-          },
+          (snapshot) => setAll(snapshot.docs.map((d) => normalize(d.data()))),
           (err) => console.warn('firestore subscribe failed', err)
         )
       } else {
         const local = readLocal()
-        const src = local || seed.projects
+        const src = local || (await loadSeedProjects())
+        if (cancelled) return
         setAll(src.map((p) => normalize(p)))
         setLoading(false)
       }
@@ -128,9 +136,11 @@ export function useStore() {
       return next
     })
     if (isShared) {
-      setDoc(doc(db, COLLECTION, String(proj.id)), clean(proj)).catch((error) =>
-        console.warn('save failed', error)
-      )
+      ;(async () => {
+        const db = await getDb()
+        const { doc, setDoc } = await import('firebase/firestore')
+        await setDoc(doc(db, COLLECTION, String(proj.id)), clean(proj))
+      })().catch((error) => console.warn('save failed', error))
     }
   }, [])
 
@@ -141,9 +151,11 @@ export function useStore() {
       return next
     })
     if (isShared) {
-      deleteDoc(doc(db, COLLECTION, String(id))).catch((error) =>
-        console.warn('delete failed', error)
-      )
+      ;(async () => {
+        const db = await getDb()
+        const { doc, deleteDoc } = await import('firebase/firestore')
+        await deleteDoc(doc(db, COLLECTION, String(id)))
+      })().catch((error) => console.warn('delete failed', error))
     }
   }, [])
 
