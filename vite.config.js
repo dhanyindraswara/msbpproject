@@ -6,4 +6,17 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   base: './',
+  build: {
+    // Firebase is lazy-loaded into its own chunk on purpose; it is large but no
+    // longer blocks first paint, so don't warn about it.
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Keep React in a separate, long-lived cache chunk.
+        manualChunks: {
+          react: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
 })

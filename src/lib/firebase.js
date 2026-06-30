@@ -1,10 +1,10 @@
-import { initializeApp } from 'firebase/app'
-import { getFirestore } from 'firebase/firestore'
-
 // Firebase web config. These values are safe to expose in the client — access
 // is controlled by Firestore security rules (see firestore.rules), not by
-// keeping the config secret. Get them from the Firebase console:
-// Project settings → General → Your apps → SDK setup and configuration.
+// keeping the config secret.
+//
+// The Firebase SDK (~200 KB gzip) is NOT imported at module load. It is pulled
+// in lazily via getDb() so it never blocks first paint and ends up in its own
+// cached chunk. isShared can be evaluated without touching the SDK at all.
 const config = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -19,7 +19,16 @@ const config = {
 // localStorage so it still works with zero configuration.
 export const isShared = Boolean(config.apiKey && config.projectId)
 
-const app = isShared ? initializeApp(config) : null
-export const db = app ? getFirestore(app) : null
-
 export const COLLECTION = 'projects'
+
+let dbPromise = null
+
+// Lazily load the Firebase SDK and return the Firestore instance (memoised).
+export function getDb() {
+  if (!dbPromise) {
+    dbPromise = Promise.all([import('firebase/app'), import('firebase/firestore')]).then(
+      ([{ initializeApp }, { getFirestore }]) => getFirestore(initializeApp(config))
+    )
+  }
+  return dbPromise
+}
