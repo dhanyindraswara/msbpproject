@@ -79,6 +79,24 @@ Vercel, Netlify, GitHub Pages, etc. Set the `VITE_FIREBASE_*` environment variab
 your host's settings to enable shared mode in production. (`vite.config.js` uses a
 relative `base`, so it also works from a sub-path like GitHub Pages project sites.)
 
+### GitHub Pages (automated)
+
+`.github/workflows/deploy.yml` builds and publishes to GitHub Pages on every push
+to `main`. It reads the Firebase config from **repository secrets**, so add these
+under **Settings → Secrets and variables → Actions** (New repository secret):
+
+```
+VITE_FIREBASE_API_KEY, VITE_FIREBASE_AUTH_DOMAIN, VITE_FIREBASE_PROJECT_ID,
+VITE_FIREBASE_STORAGE_BUCKET, VITE_FIREBASE_MESSAGING_SENDER_ID, VITE_FIREBASE_APP_ID
+```
+
+Then enable Pages at **Settings → Pages → Source: GitHub Actions**. The Firebase web
+config is public by design (it ships in the client bundle); the secrets just keep it
+out of the committed source. Real protection comes from `firestore.rules` and adding
+API-key restrictions (HTTP referrers) in the Google Cloud console.
+
+### Firebase Hosting
+
 To deploy on **Firebase Hosting** (config in [`firebase.json`](firebase.json)):
 
 ```bash

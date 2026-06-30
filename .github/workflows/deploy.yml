@@ -19,17 +19,18 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Firebase web config — these are public values (security is enforced by
-    # firestore.rules, not by keeping them secret), so it is fine to inline them
-    # here. To rotate or change projects, edit these or move them to repo
-    # Settings → Secrets and variables → Actions.
+    # Firebase web config is pulled from repo secrets so the values are not
+    # committed to source (keeps secret-scanning quiet). Note these are public
+    # by design — they ship in the client bundle either way; real protection is
+    # firestore.rules plus API-key restrictions in Google Cloud. Add them under
+    # Settings → Secrets and variables → Actions → New repository secret.
     env:
-      VITE_FIREBASE_API_KEY: AIzaSyBYufI40Qe-6rHDVizgMehhgLY-wSpMEGM
-      VITE_FIREBASE_AUTH_DOMAIN: msbp-project-manager.firebaseapp.com
-      VITE_FIREBASE_PROJECT_ID: msbp-project-manager
-      VITE_FIREBASE_STORAGE_BUCKET: msbp-project-manager.firebasestorage.app
-      VITE_FIREBASE_MESSAGING_SENDER_ID: "921712837669"
-      VITE_FIREBASE_APP_ID: "1:921712837669:web:619ca6dfb84d4864c72bcc"
+      VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
+      VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}
+      VITE_FIREBASE_PROJECT_ID: ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+      VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}
+      VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}
+      VITE_FIREBASE_APP_ID: ${{ secrets.VITE_FIREBASE_APP_ID }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
