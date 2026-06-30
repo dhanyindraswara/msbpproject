@@ -376,7 +376,7 @@ export default function App() {
     >
       <Header onExport={exportCsv} onAddNew={addNew} shared={isShared} />
 
-      <main style={{ maxWidth: 1500, margin: '0 auto', padding: '26px 30px 90px' }}>
+      <main className="msbp-main" style={{ maxWidth: 1500, margin: '0 auto', padding: '26px 30px 90px' }}>
         <KpiCards kpi={kpi} cols={kpiCols} />
 
         <FilterBar
