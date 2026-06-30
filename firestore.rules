@@ -1,0 +1,21 @@
+rules_version = '2';
+
+// Firestore security rules for the MSBP Project Manager.
+//
+// This is an internal team tracker, so the rules below grant full read/write
+// to the `projects` collection with no auth — the same trust model as the old
+// Supabase "anon full access" policy. It means anyone with the app URL + the
+// (public) web config can read and edit.
+//
+// If you need real access control, enable Firebase Authentication and replace
+// `if true` with an auth check, e.g.:
+//   allow read, write: if request.auth != null;
+//
+// Deploy with:  firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /projects/{projectId} {
+      allow read, write: if true;
+    }
+  }
+}

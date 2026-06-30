@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { supabase, isShared, TABLE } from './supabase.js'
+import {
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  setDoc,
+  deleteDoc,
+  writeBatch,
+} from 'firebase/firestore'
+import { db, isShared, COLLECTION } from './firebase.js'
 import { normalize } from './helpers.js'
 
 const KEY = 'msbp_projects_v2'
@@ -39,9 +48,15 @@ async function loadSeed() {
   }
 }
 
+// Firestore rejects `undefined` field values; round-trip through JSON to drop
+// them and produce a plain, storable object.
+function clean(obj) {
+  return JSON.parse(JSON.stringify(obj))
+}
+
 /**
  * useStore — single source of truth for projects.
- * Shared mode (Supabase): live data + realtime sync across everyone.
+ * Shared mode (Firestore): live data + realtime sync across everyone.
  * Fallback mode: per-browser localStorage seeded from projects.json.
  */
 export function useStore() {
@@ -51,7 +66,7 @@ export function useStore() {
 
   useEffect(() => {
     let cancelled = false
-    let channel = null
+    let unsubscribe = null
 
     async function init() {
       const seed = await loadSeed()
@@ -59,37 +74,36 @@ export function useStore() {
       dirRef.current = seed.dir
 
       if (isShared) {
-        // Pull current rows; seed the table on first run if empty.
-        const { data, error } = await supabase.from(TABLE).select('id, data')
-        if (error) console.warn('supabase load failed', error)
-        let rows = data || []
-        if (!rows.length && seed.projects.length) {
-          const payload = seed.projects.map((p) => ({ id: p.id, data: normalize(p) }))
-          const { error: seedErr } = await supabase.from(TABLE).upsert(payload)
-          if (seedErr) console.warn('supabase seed failed', seedErr)
-          rows = payload
+        const colRef = collection(db, COLLECTION)
+
+        // Pull current docs; seed the collection on first run if empty.
+        try {
+          const snap = await getDocs(colRef)
+          if (cancelled) return
+          if (snap.empty && seed.projects.length) {
+            const batch = writeBatch(db)
+            for (const p of seed.projects) {
+              batch.set(doc(colRef, String(p.id)), clean(normalize(p)))
+            }
+            await batch.commit()
+            setAll(seed.projects.map((p) => normalize(p)))
+          } else {
+            setAll(snap.docs.map((d) => normalize(d.data())))
+          }
+        } catch (e) {
+          console.warn('firestore load failed', e)
         }
         if (cancelled) return
-        setAll(rows.map((r) => normalize(r.data)))
         setLoading(false)
 
-        // Live updates from anyone else.
-        channel = supabase
-          .channel('projects-sync')
-          .on('postgres_changes', { event: '*', schema: 'public', table: TABLE }, (payload) => {
-            setAll((cur) => {
-              if (payload.eventType === 'DELETE') {
-                return cur.filter((p) => p.id !== payload.old.id)
-              }
-              const row = normalize(payload.new.data)
-              const idx = cur.findIndex((p) => p.id === row.id)
-              if (idx === -1) return [row, ...cur]
-              const next = cur.slice()
-              next[idx] = row
-              return next
-            })
-          })
-          .subscribe()
+        // Live updates from anyone else (also keeps this tab authoritative).
+        unsubscribe = onSnapshot(
+          colRef,
+          (snapshot) => {
+            setAll(snapshot.docs.map((d) => normalize(d.data())))
+          },
+          (err) => console.warn('firestore subscribe failed', err)
+        )
       } else {
         const local = readLocal()
         const src = local || seed.projects
@@ -101,7 +115,7 @@ export function useStore() {
     init()
     return () => {
       cancelled = true
-      if (channel) supabase.removeChannel(channel)
+      if (unsubscribe) unsubscribe()
     }
   }, [])
 
@@ -114,10 +128,9 @@ export function useStore() {
       return next
     })
     if (isShared) {
-      supabase
-        .from(TABLE)
-        .upsert({ id: proj.id, data: proj, updated_at: new Date().toISOString() })
-        .then(({ error }) => error && console.warn('save failed', error))
+      setDoc(doc(db, COLLECTION, String(proj.id)), clean(proj)).catch((error) =>
+        console.warn('save failed', error)
+      )
     }
   }, [])
 
@@ -128,11 +141,9 @@ export function useStore() {
       return next
     })
     if (isShared) {
-      supabase
-        .from(TABLE)
-        .delete()
-        .eq('id', id)
-        .then(({ error }) => error && console.warn('delete failed', error))
+      deleteDoc(doc(db, COLLECTION, String(id))).catch((error) =>
+        console.warn('delete failed', error)
+      )
     }
   }, [])
 
