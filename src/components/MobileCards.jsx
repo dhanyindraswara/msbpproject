@@ -83,13 +83,7 @@ export default function MobileCards({ rows, statuses, empty }) {
             </span>
             <span>{r.ownerLine}</span>
           </div>
-          <div style={{ marginTop: 13 }} onClick={stop}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-              <span style={{ fontWeight: 800, fontSize: 16, color: r.barColor, width: 50 }}>{r.progress}%</span>
-              <div style={{ flex: 1, height: 8, borderRadius: 6, background: '#E9EDF1', overflow: 'hidden' }}>
-                <div style={{ height: '100%', borderRadius: 6, background: r.barColor, width: r.progressW, transition: 'width .2s' }} />
-              </div>
-            </div>
+          <div style={{ marginTop: 13, display: 'flex', alignItems: 'center', gap: 11 }} onClick={stop}>
             <input
               type="range"
               min="0"
@@ -100,11 +94,13 @@ export default function MobileCards({ rows, statuses, empty }) {
               onChange={r.onProgress}
               onInput={r.onProgress}
               style={{
-                width: '100%',
-                height: 8,
+                flex: 1,
                 background: `linear-gradient(90deg,${r.barColor} ${r.progressW}, #E9EDF1 ${r.progressW})`,
               }}
             />
+            <span style={{ fontWeight: 800, fontSize: 15, color: r.barColor, width: 46, textAlign: 'right', flex: 'none' }}>
+              {r.progress}%
+            </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 14 }} onClick={stop}>
             <select
