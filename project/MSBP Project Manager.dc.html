@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:#1F1F1F;background:#F7F8FA;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+input,select,textarea,button{font-family:inherit;color:inherit}
+::-webkit-scrollbar{height:10px;width:10px}
+::-webkit-scrollbar-thumb{background:#d4dae2;border-radius:8px;border:2px solid #F7F8FA}
+::-webkit-scrollbar-track{background:transparent}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes drawerIn{from{transform:translateX(46px);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes toastIn{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+input[type=range].msbp-rng{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;outline:none;cursor:pointer}
+input[type=range].msbp-rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:15px;height:15px;border-radius:50%;background:#fff;border:2.5px solid #02A0C1;box-shadow:0 1px 4px rgba(0,0,0,.22);cursor:pointer;margin-top:0}
+.msbp-row:hover{background:#F4F8FD !important}
+.msbp-card{transition:box-shadow .18s,transform .18s}
+.msbp-card:hover{box-shadow:0 10px 28px rgba(20,50,90,.14) !important;transform:translateY(-2px)}
+.msbp-btn{transition:transform .15s,box-shadow .15s}
+.msbp-btn:hover{transform:translateY(-1px)}
+.msbp-ghost{transition:background .15s,border-color .15s}
+.msbp-ghost:hover{background:#EEF3F9 !important}
+.msbp-in{transition:border-color .15s,box-shadow .15s}
+.msbp-in:focus{border-color:#02A0C1 !important;box-shadow:0 0 0 3px rgba(2,160,193,.13) !important}
+.msbp-act:hover{background:#fff !important;border-color:#cfd7e0 !important}
+.msbp-del:hover{color:#C0392B !important;background:#FBEFEE !important}
+.msbp-table thead th{position:sticky;top:0;z-index:3}
+.msbp-scroll{overflow:auto;max-height:calc(100vh - 320px);min-height:280px}
+.msbp-scroll::-webkit-scrollbar{height:14px;width:12px}
+.msbp-scroll::-webkit-scrollbar-thumb{background:#aeb8c4;border-radius:10px;border:3px solid #fff}
+.msbp-scroll::-webkit-scrollbar-thumb:hover{background:#8b97a6}
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(1100px 620px at 10% -10%, #E4F4F9 0%, rgba(228,244,249,0) 58%), radial-gradient(940px 560px at 100% -4%, #E7EFFC 0%, rgba(231,239,252,0) 52%), #F7F8FA;">
+
+  <header style="position:sticky;top:0;z-index:40;backdrop-filter:blur(20px) saturate(150%);background:rgba(247,248,250,.84);border-bottom:1px solid #E6E8EC;">
+    <div style="max-width:1500px;margin:0 auto;padding:13px 30px;display:flex;align-items:center;gap:15px;">
+      <div style="width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#02A0C1,#3581E1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;box-shadow:0 6px 18px rgba(2,160,193,.34);flex:none;letter-spacing:-.02em;">M</div>
+      <div style="flex:none;">
+        <div style="font-size:17px;font-weight:800;letter-spacing:-.025em;line-height:1.15;">MSBP Project Manager</div>
+        <div style="font-size:11.5px;font-weight:600;color:#7A8696;letter-spacing:.01em;">Consolidated plan · live tracker</div>
+      </div>
+      <div style="flex:1;"></div>
+      <a href="data/source.xlsx" download="MSBP Project Consolidated.xlsx" class="msbp-ghost" style="display:flex;align-items:center;gap:7px;text-decoration:none;color:#374151;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;">Source Excel</a>
+      <button onClick="{{ exportCsv }}" class="msbp-ghost" style="cursor:pointer;color:#374151;font-size:12.5px;font-weight:600;padding:9px 14px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;">Export CSV</button>
+      <button onClick="{{ addNew }}" class="msbp-btn" style="cursor:pointer;color:#fff;font-size:12.5px;font-weight:700;padding:9px 17px;border-radius:999px;border:none;background:linear-gradient(135deg,#02A0C1,#3581E1);box-shadow:0 6px 16px rgba(2,160,193,.34);">+ New project</button>
+    </div>
+  </header>
+
+  <main style="max-width:1500px;margin:0 auto;padding:26px 30px 90px;">
+
+    <div style="display:grid;grid-template-columns:{{ kpiCols }};gap:14px;margin-bottom:22px;">
+      <div style="background:rgba(255,255,255,.6);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:17px 19px;box-shadow:0 10px 30px rgba(20,50,90,.07);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#02A0C1;">Total projects</div>
+        <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:7px;line-height:1;">{{ kpi.total }}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#7A8696;margin-top:6px;">{{ kpi.shown }} shown now</div>
+      </div>
+      <div style="background:rgba(255,255,255,.6);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:17px 19px;box-shadow:0 10px 30px rgba(20,50,90,.07);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#7A8696;">Avg progress</div>
+        <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:7px;line-height:1;">{{ kpi.avg }}<span style="font-size:15px;color:#aab2bd;font-weight:700;">%</span></div>
+        <div style="height:6px;border-radius:6px;background:#E9EDF1;margin-top:11px;overflow:hidden;"><div style="height:100%;border-radius:6px;background:linear-gradient(90deg,#02A0C1,#3581E1);width:{{ kpi.avgW }};"></div></div>
+      </div>
+      <div style="background:rgba(255,255,255,.6);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:17px 19px;box-shadow:0 10px 30px rgba(20,50,90,.07);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#1F9D6B;">Completed</div>
+        <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:7px;line-height:1;">{{ kpi.completed }}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#7A8696;margin-top:6px;">{{ kpi.completedPct }}% of total</div>
+      </div>
+      <div style="background:rgba(255,255,255,.6);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:17px 19px;box-shadow:0 10px 30px rgba(20,50,90,.07);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#0284A8;">In progress</div>
+        <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:7px;line-height:1;">{{ kpi.progress }}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#7A8696;margin-top:6px;">{{ kpi.open }} open · {{ kpi.hold }} hold</div>
+      </div>
+      <div style="background:rgba(255,255,255,.6);backdrop-filter:blur(24px) saturate(140%);border:1px solid rgba(255,255,255,.75);border-radius:20px;padding:17px 19px;box-shadow:0 10px 30px rgba(20,50,90,.07);">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#C0392B;">At risk / overdue</div>
+        <div style="font-size:31px;font-weight:800;letter-spacing:-.03em;margin-top:7px;line-height:1;">{{ kpi.risk }}</div>
+        <div style="font-size:11.5px;font-weight:600;color:#7A8696;margin-top:6px;">need attention</div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin-bottom:18px;">
+      <div style="position:relative;flex:1;min-width:230px;">
+        <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#a3abb6;font-size:14px;pointer-events:none;">⌕</span>
+        <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Search project, code, lead, owner, issue…" class="msbp-in" style="width:100%;padding:11px 14px 11px 35px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;font-size:13px;font-weight:600;outline:none;" />
+      </div>
+      <select value="{{ fYear }}" onChange="{{ onYear }}" class="msbp-in" style="padding:11px 13px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;outline:none;">
+        <option value="all">All years</option>
+        <sc-for list="{{ years }}" as="y" hint-placeholder-count="2"><option value="{{ y }}">{{ y }}</option></sc-for>
+      </select>
+      <select value="{{ fCat }}" onChange="{{ onCat }}" class="msbp-in" style="padding:11px 13px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;max-width:240px;outline:none;">
+        <option value="all">All categories</option>
+        <sc-for list="{{ cats }}" as="c" hint-placeholder-count="4"><option value="{{ c }}">{{ c }}</option></sc-for>
+      </select>
+      <select value="{{ fLead }}" onChange="{{ onLead }}" class="msbp-in" style="padding:11px 13px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;outline:none;">
+        <option value="all">All leads</option>
+        <sc-for list="{{ leadCodes }}" as="l" hint-placeholder-count="6"><option value="{{ l }}">{{ l }}</option></sc-for>
+      </select>
+      <select value="{{ fStatus }}" onChange="{{ onStatusFilter }}" class="msbp-in" style="padding:11px 13px;border-radius:999px;border:1px solid #E6E8EC;background:#fff;font-size:12.5px;font-weight:600;cursor:pointer;outline:none;">
+        <option value="all">All status</option>
+        <sc-for list="{{ statuses }}" as="s" hint-placeholder-count="4"><option value="{{ s }}">{{ s }}</option></sc-for>
+      </select>
+      <sc-if value="{{ showToggle }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;background:#E9EDF1;border-radius:999px;padding:3px;gap:2px;">
+        <button onClick="{{ viewTable }}" style="cursor:pointer;border:none;border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700;background:{{ tableBg }};color:{{ tableFg }};box-shadow:{{ tableSh }};transition:all .15s;">Table</button>
+        <button onClick="{{ viewBoard }}" style="cursor:pointer;border:none;border-radius:999px;padding:8px 16px;font-size:12.5px;font-weight:700;background:{{ boardBg }};color:{{ boardFg }};box-shadow:{{ boardSh }};transition:all .15s;">Board</button>
+      </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{ loading }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:90px 0;color:#a3abb6;">
+        <div style="width:32px;height:32px;border:3px solid #E6E8EC;border-top-color:#02A0C1;border-radius:50%;animation:spin .8s linear infinite;"></div>
+        <div style="margin-top:14px;font-size:13px;font-weight:600;">Loading projects…</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showTable }}" hint-placeholder-val="{{ false }}">
+      <div style="background:#fff;border:1px solid #E6E8EC;border-radius:20px;box-shadow:0 10px 30px rgba(20,50,90,.06);overflow:hidden;">
+        <div class="msbp-scroll">
+          <table class="msbp-table" style="width:100%;border-collapse:collapse;min-width:1480px;font-size:13px;">
+            <thead>
+              <tr style="background:#F6F9FC;border-bottom:1px solid #E6E8EC;">
+                <th style="text-align:left;padding:12px 16px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:80px;">Code</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;min-width:300px;">Project</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:160px;">Category</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:160px;">Owner / customer</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:130px;">Lead / team</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:230px;">Progress</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:158px;">Status</th>
+                <th style="text-align:left;padding:12px 14px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:118px;">Target</th>
+                <th style="text-align:right;padding:12px 16px;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a0ae;width:92px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                <tr class="msbp-row" style="border-bottom:1px solid #F0F2F5;transition:background .12s;cursor:pointer;" onClick="{{ r.onOpen }}">
+                  <td style="padding:{{ tdPadV }} 16px;vertical-align:top;"><span style="font-weight:700;color:#3581E1;font-size:12px;letter-spacing:-.01em;">{{ r.code }}</span></td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;max-width:360px;">
+                    <div style="font-weight:700;line-height:1.35;color:#1F1F1F;letter-spacing:-.01em;">{{ r.name }}</div>
+                    <div style="font-size:11px;font-weight:600;color:#9aa3af;line-height:1.35;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:360px;">{{ r.task }}</div>
+                  </td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;"><span style="display:inline-block;font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;color:{{ r.catC }};background:{{ r.catBg }};line-height:1.25;">{{ r.category }}</span></td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;"><div style="font-size:12px;font-weight:700;color:#374151;line-height:1.3;">{{ r.owner }}</div></td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;">
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <span style="width:25px;height:25px;border-radius:50%;background:{{ r.leadBg }};color:{{ r.leadC }};display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:none;">{{ r.lead }}</span>
+                      <span style="font-size:11px;font-weight:600;color:#7A8696;line-height:1.3;">{{ r.team }}</span>
+                    </div>
+                  </td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:middle;" onClick="{{ stop }}">
+                    <div style="display:flex;align-items:center;gap:11px;">
+                      <input type="range" min="0" max="100" step="5" class="msbp-rng" value="{{ r.progress }}" onChange="{{ r.onProgress }}" onInput="{{ r.onProgress }}" style="flex:1;background:linear-gradient(90deg,{{ r.barColor }} {{ r.progressW }}, #E9EDF1 {{ r.progressW }});" />
+                      <span style="font-weight:800;font-size:13.5px;color:{{ r.barColor }};width:44px;text-align:right;flex:none;">{{ r.progress }}%</span>
+                    </div>
+                  </td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;" onClick="{{ stop }}">
+                    <select value="{{ r.status }}" onChange="{{ r.onStatus }}" style="width:100%;padding:8px 30px 8px 12px;border-radius:9px;border:1px solid {{ r.statusC }};background:{{ r.statusBg }};color:{{ r.statusC }};font-size:12.5px;font-weight:700;cursor:pointer;outline:none;white-space:nowrap;">
+                      <sc-for list="{{ statuses }}" as="s" hint-placeholder-count="4"><option value="{{ s }}">{{ s }}</option></sc-for>
+                    </select>
+                  </td>
+                  <td style="padding:{{ tdPadV }} 14px;vertical-align:top;">
+                    <div style="font-size:12px;font-weight:700;color:{{ r.targetC }};">{{ r.target }}</div>
+                    <sc-if value="{{ r.overdue }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;color:#C0392B;text-transform:uppercase;letter-spacing:.05em;margin-top:3px;">Overdue</div></sc-if>
+                  </td>
+                  <td style="padding:{{ tdPadV }} 16px;vertical-align:top;text-align:right;" onClick="{{ stop }}">
+                    <div style="display:inline-flex;align-items:center;gap:7px;">
+                      <sc-if value="{{ r.hasIssue }}" hint-placeholder-val="{{ false }}"><span title="Has open issue" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E8A33D;"></span></sc-if>
+                      <button onClick="{{ r.onMail }}" title="Email update to stakeholders" class="msbp-act" style="cursor:pointer;border:1px solid #E6E8EC;background:#F7F9FC;border-radius:8px;width:28px;height:28px;font-size:13px;color:#0284A8;line-height:1;">✉</button>
+                      <span onClick="{{ r.onOpen }}" style="color:#c4cbd4;font-size:17px;cursor:pointer;">›</span>
+                    </div>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:60px;text-align:center;color:#a3abb6;font-size:14px;font-weight:600;">No projects match your filters.</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showBoard }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;align-items:start;">
+        <sc-for list="{{ boardCols }}" as="col" hint-placeholder-count="4">
+          <div onDragOver="{{ allowDrop }}" onDrop="{{ col.onDrop }}" style="background:rgba(255,255,255,.55);backdrop-filter:blur(18px);border:1px solid #E6E8EC;border-radius:18px;padding:12px;min-height:130px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 6px 13px;">
+              <span style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:{{ col.c }};letter-spacing:-.01em;"><span style="width:9px;height:9px;border-radius:50%;background:{{ col.c }};"></span>{{ col.status }}</span>
+              <span style="font-size:11.5px;font-weight:700;color:#94a0ae;background:#fff;border-radius:999px;padding:2px 10px;">{{ col.count }}</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <sc-for list="{{ col.cards }}" as="r" hint-placeholder-count="3">
+                <div class="msbp-card" draggable="true" onDragStart="{{ r.onDragStart }}" onClick="{{ r.onOpen }}" style="background:#fff;border:1px solid #EBEEF2;border-radius:14px;padding:12px 13px;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.05);">
+                  <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;">
+                    <span style="font-weight:700;color:#3581E1;font-size:11px;">{{ r.code }}</span>
+                    <span style="font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;color:{{ r.catC }};background:{{ r.catBg }};">{{ r.category }}</span>
+                  </div>
+                  <div style="font-weight:700;font-size:13px;line-height:1.35;color:#1F1F1F;letter-spacing:-.01em;">{{ r.name }}</div>
+                  <div style="font-size:11px;font-weight:600;color:#9aa3af;margin-top:5px;">{{ r.ownerLine }}</div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:11px;">
+                    <span style="width:23px;height:23px;border-radius:50%;background:{{ r.leadBg }};color:{{ r.leadC }};display:inline-flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;flex:none;">{{ r.lead }}</span>
+                    <div style="flex:1;height:6px;border-radius:6px;background:#E9EDF1;overflow:hidden;"><div style="height:100%;border-radius:6px;background:{{ r.barColor }};width:{{ r.progressW }};"></div></div>
+                    <span style="font-size:11px;font-weight:800;color:{{ r.barColor }};">{{ r.progress }}%</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- MOBILE CARD VIEW -->
+    <sc-if value="{{ showMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+          <div class="msbp-card" onClick="{{ r.onOpen }}" style="background:#fff;border:1px solid #EBEEF2;border-radius:16px;padding:15px;box-shadow:0 2px 9px rgba(20,50,90,.05);cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;">
+              <span style="font-weight:700;color:#3581E1;font-size:11.5px;">{{ r.code }}</span>
+              <span style="font-size:9.5px;font-weight:700;padding:3px 9px;border-radius:999px;color:{{ r.catC }};background:{{ r.catBg }};">{{ r.category }}</span>
+              <div style="flex:1;"></div>
+              <button onClick="{{ r.onMail }}" title="Email update" class="msbp-act" style="cursor:pointer;border:1px solid #E6E8EC;background:#F7F9FC;border-radius:9px;width:34px;height:34px;font-size:15px;color:#0284A8;line-height:1;">✉</button>
+            </div>
+            <div style="font-weight:700;font-size:15px;line-height:1.35;color:#1F1F1F;letter-spacing:-.015em;">{{ r.name }}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:8px;font-size:11.5px;font-weight:600;color:#7A8696;">
+              <span style="width:24px;height:24px;border-radius:50%;background:{{ r.leadBg }};color:{{ r.leadC }};display:inline-flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:800;flex:none;">{{ r.lead }}</span>
+              <span>{{ r.ownerLine }}</span>
+            </div>
+            <div style="margin-top:13px;" onClick="{{ stop }}">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                <span style="font-weight:800;font-size:16px;color:{{ r.barColor }};width:50px;">{{ r.progress }}%</span>
+                <div style="flex:1;height:8px;border-radius:6px;background:#E9EDF1;overflow:hidden;"><div style="height:100%;border-radius:6px;background:{{ r.barColor }};width:{{ r.progressW }};transition:width .2s;"></div></div>
+              </div>
+              <input type="range" min="0" max="100" step="5" class="msbp-rng" value="{{ r.progress }}" onChange="{{ r.onProgress }}" onInput="{{ r.onProgress }}" style="width:100%;height:8px;background:linear-gradient(90deg,{{ r.barColor }} {{ r.progressW }}, #E9EDF1 {{ r.progressW }});" />
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:14px;" onClick="{{ stop }}">
+              <select value="{{ r.status }}" onChange="{{ r.onStatus }}" style="flex:1;padding:10px 30px 10px 12px;border-radius:10px;border:1px solid {{ r.statusC }};background:{{ r.statusBg }};color:{{ r.statusC }};font-size:13px;font-weight:700;cursor:pointer;outline:none;">
+                <sc-for list="{{ statuses }}" as="s" hint-placeholder-count="4"><option value="{{ s }}">{{ s }}</option></sc-for>
+              </select>
+              <div style="text-align:right;">
+                <div style="font-size:13px;font-weight:700;color:{{ r.targetC }};">{{ r.target }}</div>
+                <sc-if value="{{ r.overdue }}" hint-placeholder-val="{{ false }}"><div style="font-size:9.5px;font-weight:800;color:#C0392B;text-transform:uppercase;letter-spacing:.05em;">Overdue</div></sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+        <sc-if value="{{ empty }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:50px;text-align:center;color:#a3abb6;font-size:14px;font-weight:600;">No projects match your filters.</div>
+        </sc-if>
+      </div>
+    </sc-if>
+  </main>
+
+  <!-- DETAIL DRAWER -->
+  <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeDrawer }}" style="position:fixed;inset:0;z-index:60;background:rgba(20,35,55,.36);backdrop-filter:blur(3px);animation:fadeIn .2s ease;"></div>
+    <aside style="position:fixed;top:0;right:0;bottom:0;z-index:70;width:min(600px,96vw);background:#FAFBFC;box-shadow:-18px 0 64px rgba(20,50,90,.24);display:flex;flex-direction:column;animation:drawerIn .28s cubic-bezier(.22,1,.36,1);">
+      <div style="padding:18px 26px;border-bottom:1px solid #E6E8EC;background:#fff;">
+        <div style="display:flex;align-items:flex-start;gap:12px;">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#02A0C1;">{{ drawerTag }}</div>
+            <input value="{{ d.name }}" onInput="{{ onD.name }}" placeholder="Project name" style="width:100%;border:none;background:transparent;font-size:20px;font-weight:800;letter-spacing:-.025em;outline:none;padding:3px 0 0;margin-top:2px;" />
+          </div>
+          <button onClick="{{ closeDrawer }}" class="msbp-ghost" style="cursor:pointer;border:1px solid #E6E8EC;background:#fff;width:34px;height:34px;border-radius:10px;font-size:19px;color:#7A8696;flex:none;line-height:1;">×</button>
+        </div>
+        <button onClick="{{ openEmailDraft }}" class="msbp-btn" style="margin-top:12px;cursor:pointer;border:none;color:#fff;font-size:12.5px;font-weight:700;padding:9px 16px;border-radius:999px;background:linear-gradient(135deg,#02A0C1,#3581E1);box-shadow:0 5px 14px rgba(2,160,193,.3);display:inline-flex;align-items:center;gap:7px;">✉ Send update to stakeholders</button>
+      </div>
+
+      <div style="flex:1;overflow-y:auto;padding:22px 26px;">
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <div style="flex:1;background:#fff;border:1px solid #E6E8EC;border-radius:14px;padding:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;">Progress</span><span style="font-size:18px;font-weight:800;color:{{ d.barColor }};">{{ d.progress }}%</span></div>
+            <input type="range" min="0" max="100" step="5" class="msbp-rng" value="{{ d.progress }}" onInput="{{ onD.progress }}" style="width:100%;background:linear-gradient(90deg,{{ d.barColor }} {{ d.progressW }}, #E9EDF1 {{ d.progressW }});" />
+          </div>
+          <div style="flex:1;background:#fff;border:1px solid #E6E8EC;border-radius:14px;padding:14px;">
+            <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;margin-bottom:9px;">Status</div>
+            <select value="{{ d.status }}" onChange="{{ onD.status }}" style="width:100%;padding:9px 10px;border-radius:10px;border:1px solid {{ d.statusC }};background:{{ d.statusBg }};color:{{ d.statusC }};font-size:13px;font-weight:700;cursor:pointer;outline:none;">
+              <sc-for list="{{ statuses }}" as="s" hint-placeholder-count="4"><option value="{{ s }}">{{ s }}</option></sc-for>
+            </select>
+          </div>
+        </div>
+
+        <!-- Process Owner / Customer -->
+        <div style="background:#fff;border:1px solid #E6E8EC;border-radius:14px;padding:15px;margin-bottom:18px;">
+          <div style="font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#0284A8;margin-bottom:10px;">Process owner / customer</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <label style="display:block;"><span style="font-size:10.5px;font-weight:700;color:#94a0ae;">Name / unit</span><input value="{{ d.owner }}" onInput="{{ onD.owner }}" placeholder="e.g. Finance & Accounting" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;" /></label>
+            <label style="display:block;"><span style="font-size:10.5px;font-weight:700;color:#94a0ae;">Email</span><input value="{{ d.ownerEmail }}" onInput="{{ onD.ownerEmail }}" placeholder="owner@banpuindo.co.id" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;color:#3581E1;" /></label>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Code</span><input value="{{ d.code }}" onInput="{{ onD.code }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;" /></label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Effective year</span>
+            <select value="{{ d.year }}" onChange="{{ onD.year }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;cursor:pointer;"><option value="2025">2025</option><option value="2026">2026</option></select>
+          </label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Category</span>
+            <select value="{{ d.category }}" onChange="{{ onD.category }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;cursor:pointer;"><sc-for list="{{ cats }}" as="c" hint-placeholder-count="4"><option value="{{ c }}">{{ c }}</option></sc-for></select>
+          </label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Lead</span>
+            <select value="{{ d.lead }}" onChange="{{ onD.lead }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;cursor:pointer;"><sc-for list="{{ leadCodes }}" as="l" hint-placeholder-count="6"><option value="{{ l }}">{{ l }}</option></sc-for></select>
+          </label>
+        </div>
+
+        <label style="display:block;margin-bottom:18px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Task / programme</span><input value="{{ d.task }}" onInput="{{ onD.task }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;" /></label>
+        <label style="display:block;margin-bottom:18px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Team collaboration</span><input value="{{ d.team }}" onInput="{{ onD.team }}" placeholder="e.g. ALR, RRP" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;" /></label>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:22px;">
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Start date</span><input type="date" value="{{ d.startDate }}" onInput="{{ onD.startDate }}" class="msbp-in" style="width:100%;margin-top:5px;padding:8px 9px;border:1px solid #E6E8EC;border-radius:10px;font-size:12px;font-weight:600;outline:none;background:#fff;" /></label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">End date</span><input type="date" value="{{ d.endDate }}" onInput="{{ onD.endDate }}" class="msbp-in" style="width:100%;margin-top:5px;padding:8px 9px;border:1px solid #E6E8EC;border-radius:10px;font-size:12px;font-weight:600;outline:none;background:#fff;" /></label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Target</span><input value="{{ d.targetDate }}" onInput="{{ onD.targetDate }}" placeholder="Q2-H1" class="msbp-in" style="width:100%;margin-top:5px;padding:8px 9px;border:1px solid #E6E8EC;border-radius:10px;font-size:12px;font-weight:600;outline:none;background:#fff;" /></label>
+        </div>
+
+        <!-- ACTIVITY TIMELINE -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+          <span style="font-size:13px;font-weight:800;letter-spacing:-.01em;color:#1F1F1F;">Activity timeline</span>
+          <span style="font-size:11px;font-weight:700;color:#94a0ae;">{{ d.activityCount }} entries</span>
+        </div>
+
+        <div style="position:relative;padding-left:24px;border-left:2px solid #E2E8F0;margin-left:5px;">
+          <!-- start node -->
+          <div style="position:relative;margin-bottom:18px;">
+            <span style="position:absolute;left:-31px;top:1px;width:13px;height:13px;border-radius:50%;background:#fff;border:3px solid #1F9D6B;box-shadow:0 0 0 3px #fff;"></span>
+            <div style="font-size:10.5px;font-weight:800;color:#1F9D6B;text-transform:uppercase;letter-spacing:.05em;">Project start</div>
+            <div style="font-size:12.5px;font-weight:700;color:#374151;margin-top:2px;">{{ d.startLabel }}</div>
+          </div>
+
+          <sc-for list="{{ d.activities }}" as="a" hint-placeholder-count="3">
+            <div style="position:relative;margin-bottom:14px;background:#fff;border:1px solid #EBEEF2;border-radius:12px;padding:11px 12px;">
+              <span style="position:absolute;left:-31px;top:14px;width:11px;height:11px;border-radius:50%;background:#02A0C1;border:2.5px solid #fff;box-shadow:0 0 0 2px #cfe9f0;"></span>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+                <input type="date" value="{{ a.date }}" onInput="{{ a.onDate }}" class="msbp-in" style="border:1px solid #E6E8EC;border-radius:8px;padding:4px 7px;font-size:11px;font-weight:700;color:#0284A8;outline:none;background:#F7FBFC;" />
+                <div style="flex:1;"></div>
+                <button onClick="{{ a.onRemove }}" class="msbp-del" title="Remove" style="cursor:pointer;border:none;background:transparent;color:#b6bdc7;font-size:14px;width:24px;height:24px;border-radius:7px;line-height:1;">🗑</button>
+              </div>
+              <textarea value="{{ a.text }}" onInput="{{ a.onText }}" rows="2" class="msbp-in" style="width:100%;border:1px solid #EEF0F3;border-radius:9px;padding:8px 10px;font-size:12.5px;font-weight:500;line-height:1.5;color:#374151;outline:none;background:#fff;resize:vertical;"></textarea>
+            </div>
+          </sc-for>
+
+          <!-- add entry -->
+          <div style="position:relative;background:#F4F8FD;border:1px dashed #c2d4e6;border-radius:12px;padding:11px 12px;">
+            <span style="position:absolute;left:-31px;top:14px;width:11px;height:11px;border-radius:50%;background:#fff;border:2.5px dashed #9bb6d2;"></span>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <input type="date" value="{{ naDate }}" onInput="{{ onNaDate }}" class="msbp-in" style="border:1px solid #E6E8EC;border-radius:8px;padding:5px 8px;font-size:11px;font-weight:700;color:#0284A8;outline:none;background:#fff;" />
+              <span style="font-size:11px;font-weight:600;color:#7A8696;">add what was done</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <input value="{{ naText }}" onInput="{{ onNaText }}" placeholder="e.g. Conducted BP workshop with PO" class="msbp-in" style="flex:1;border:1px solid #E6E8EC;border-radius:9px;padding:8px 11px;font-size:12.5px;font-weight:600;outline:none;background:#fff;" />
+              <button onClick="{{ addActivity }}" class="msbp-btn" style="cursor:pointer;border:none;color:#fff;font-size:12px;font-weight:700;padding:8px 15px;border-radius:9px;background:#02A0C1;white-space:nowrap;">Add</button>
+            </div>
+          </div>
+        </div>
+
+        <label style="display:block;margin:22px 0 18px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Plan activities (weekly / next)</span><textarea value="{{ d.plan }}" onInput="{{ onD.plan }}" rows="4" class="msbp-in" style="width:100%;margin-top:5px;padding:11px 12px;border:1px solid #E6E8EC;border-radius:12px;font-size:13px;font-weight:500;line-height:1.55;outline:none;background:#fff;resize:vertical;color:#374151;"></textarea></label>
+        <label style="display:block;margin-bottom:18px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Issue / risk</span><textarea value="{{ d.issue }}" onInput="{{ onD.issue }}" rows="2" class="msbp-in" style="width:100%;margin-top:5px;padding:11px 12px;border:1px solid #E6E8EC;border-radius:12px;font-size:13px;font-weight:500;line-height:1.55;outline:none;background:#fff;resize:vertical;color:#374151;"></textarea></label>
+        <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a0ae;">Folder link</span><input value="{{ d.folder }}" onInput="{{ onD.folder }}" placeholder="https://…" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;background:#fff;color:#3581E1;" /></label>
+      </div>
+
+      <div style="padding:15px 26px;border-top:1px solid #E6E8EC;background:#fff;display:flex;align-items:center;gap:10px;">
+        <button onClick="{{ deleteProject }}" class="msbp-ghost" style="cursor:pointer;border:1px solid #F0D4CF;background:#fff;color:#C0392B;font-size:12.5px;font-weight:700;padding:11px 16px;border-radius:11px;">Delete</button>
+        <div style="flex:1;"></div>
+        <button onClick="{{ closeDrawer }}" class="msbp-ghost" style="cursor:pointer;border:1px solid #E6E8EC;background:#fff;color:#7A8696;font-size:12.5px;font-weight:700;padding:11px 18px;border-radius:11px;">Cancel</button>
+        <button onClick="{{ saveDraft }}" class="msbp-btn" style="cursor:pointer;border:none;color:#fff;font-size:12.5px;font-weight:700;padding:11px 24px;border-radius:11px;background:linear-gradient(135deg,#02A0C1,#3581E1);box-shadow:0 6px 16px rgba(2,160,193,.34);">Save changes</button>
+      </div>
+    </aside>
+  </sc-if>
+
+  <!-- EMAIL COMPOSER -->
+  <sc-if value="{{ emailOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ closeEmail }}" style="position:fixed;inset:0;z-index:90;background:rgba(20,35,55,.42);backdrop-filter:blur(4px);animation:fadeIn .2s ease;display:flex;align-items:center;justify-content:center;padding:24px;">
+      <div onClick="{{ stop }}" style="width:min(640px,100%);max-height:90vh;background:#fff;border-radius:20px;box-shadow:0 30px 80px rgba(20,50,90,.32);display:flex;flex-direction:column;overflow:hidden;animation:popIn .24s cubic-bezier(.22,1,.36,1);">
+        <div style="padding:18px 24px;border-bottom:1px solid #EEF0F3;display:flex;align-items:center;gap:12px;">
+          <div style="width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#02A0C1,#3581E1);display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex:none;">✉</div>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:800;letter-spacing:-.02em;">Send update to stakeholders</div>
+            <div style="font-size:11.5px;font-weight:600;color:#7A8696;">{{ emailMeta }}</div>
+          </div>
+          <button onClick="{{ closeEmail }}" class="msbp-ghost" style="cursor:pointer;border:1px solid #E6E8EC;background:#fff;width:32px;height:32px;border-radius:9px;font-size:18px;color:#7A8696;line-height:1;">×</button>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:18px 24px;">
+          <label style="display:block;margin-bottom:13px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;">To (process owner / customer)</span><input value="{{ email.to }}" onInput="{{ onEmailTo }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;color:#1F1F1F;" /></label>
+          <label style="display:block;margin-bottom:13px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;">Cc (lead &amp; team)</span><input value="{{ email.cc }}" onInput="{{ onEmailCc }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:600;outline:none;" /></label>
+          <label style="display:block;margin-bottom:13px;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;">Subject</span><input value="{{ email.subject }}" onInput="{{ onEmailSubject }}" class="msbp-in" style="width:100%;margin-top:5px;padding:9px 11px;border:1px solid #E6E8EC;border-radius:10px;font-size:13px;font-weight:700;outline:none;" /></label>
+          <label style="display:block;"><span style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#94a0ae;">Message</span><textarea value="{{ email.body }}" onInput="{{ onEmailBody }}" rows="13" class="msbp-in" style="width:100%;margin-top:5px;padding:12px 13px;border:1px solid #E6E8EC;border-radius:12px;font-size:12.5px;font-weight:500;line-height:1.6;outline:none;resize:vertical;color:#374151;font-family:ui-monospace,Menlo,monospace;"></textarea></label>
+        </div>
+        <div style="padding:15px 24px;border-top:1px solid #EEF0F3;display:flex;align-items:center;gap:10px;background:#FAFBFC;">
+          <span style="font-size:11px;font-weight:600;color:#94a0ae;flex:1;line-height:1.4;">Opens your email app with everything pre-filled.</span>
+          <button onClick="{{ copyEmail }}" class="msbp-ghost" style="cursor:pointer;border:1px solid #E6E8EC;background:#fff;color:#374151;font-size:12.5px;font-weight:700;padding:10px 16px;border-radius:11px;">Copy text</button>
+          <button onClick="{{ sendEmail }}" class="msbp-btn" style="cursor:pointer;border:none;color:#fff;font-size:12.5px;font-weight:700;padding:10px 20px;border-radius:11px;background:linear-gradient(135deg,#02A0C1,#3581E1);box-shadow:0 6px 16px rgba(2,160,193,.34);">Open in email app</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- TOAST -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);z-index:120;background:#1F2937;color:#fff;font-size:13px;font-weight:700;padding:12px 20px;border-radius:999px;box-shadow:0 12px 34px rgba(0,0,0,.28);animation:toastIn .24s ease;">{{ toast }}</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#02A0C1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#02A0C1&quot;,&quot;#3581E1&quot;,&quot;#1F9D6B&quot;,&quot;#8B5BC4&quot;],&quot;section&quot;:&quot;Appearance&quot;},&quot;density&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;comfortable&quot;,&quot;options&quot;:[&quot;comfortable&quot;,&quot;compact&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Appearance&quot;}}">
+class Component extends DCLogic {
+  state = {
+    loading: true,
+    all: [],
+    view: 'table',
+    search: '',
+    fYear: 'all', fCat: 'all', fLead: 'all', fStatus: 'all',
+    drawerOpen: false, draft: null, isNew: false,
+    naDate: '', naText: '',
+    emailOpen: false, email: null, emailProject: null,
+    toast: '',
+    isMobile: false,
+  };
+
+  STATUSES = ['Open','Progress','Hold','Completed'];
+  KEY = 'msbp_projects_v2';
+
+  statusMeta = {
+    Open:      { c:'#3581E1', bg:'#E7F0FC' },
+    Progress:  { c:'#0284A8', bg:'#D9F2F8' },
+    Hold:      { c:'#B5791C', bg:'#FBEFD6' },
+    Completed: { c:'#1F9D6B', bg:'#DBF3E8' },
+  };
+  catMeta(cat){
+    const m = {
+      'Management System':            { c:'#0284A8', bg:'#D9F2F8' },
+      'Business Process':             { c:'#3581E1', bg:'#E7F0FC' },
+      'Continuous Improvement':       { c:'#5E8C2E', bg:'#EAF7DC' },
+      'Change Management':            { c:'#8B5BC4', bg:'#F1E9FB' },
+      'MSBP System Enhancement':      { c:'#B5791C', bg:'#FBEFD6' },
+      'Management System & Business Process': { c:'#0E7C8B', bg:'#DDF1F2' },
+    };
+    return m[cat] || { c:'#5b6472', bg:'#EDEFF2' };
+  }
+  leadColor(code){
+    const palette = ['#02A0C1','#3581E1','#5E8C2E','#8B5BC4','#B5791C','#0E7C8B','#C0567B','#477BD1'];
+    let h = 0; for (const ch of (code||'?')) h = (h*31 + ch.charCodeAt(0)) >>> 0;
+    const c = palette[h % palette.length];
+    return { c, bg: c + '1f' };
+  }
+
+  parseHistory(text){
+    if (!text) return [];
+    const lines = String(text).split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    return lines.map((l, i) => ({
+      id: 'a' + Date.now().toString(36) + i + Math.random().toString(36).slice(2,5),
+      date: '',
+      text: l.replace(/^[\-\u2022\d.\)\s]+/, '').trim() || l,
+    }));
+  }
+  normalize(p){
+    return {
+      owner: p.owner || '', ownerEmail: p.ownerEmail || '',
+      ...p,
+      activities: Array.isArray(p.activities) ? p.activities : this.parseHistory(p.history),
+    };
+  }
+
+  componentWillUnmount(){
+    if (this._mq && this._onMq) { this._mq.removeEventListener ? this._mq.removeEventListener('change', this._onMq) : this._mq.removeListener(this._onMq); }
+  }
+  async componentDidMount(){
+    this._mq = window.matchMedia('(max-width: 760px)');
+    this._onMq = () => this.setState({ isMobile: this._mq.matches });
+    this._mq.addEventListener ? this._mq.addEventListener('change', this._onMq) : this._mq.addListener(this._onMq);
+    this.setState({ isMobile: this._mq.matches });
+    let base = [];
+    this._dir = {};
+    try {
+      const res = await fetch('data/projects.json');
+      const json = await res.json();
+      base = json.projects || [];
+      for (const pr of (json.people || [])) this._dir[pr.code] = pr.email;
+    } catch(e){ console.warn('load failed', e); }
+    let saved = null;
+    try { const raw = localStorage.getItem(this.KEY); if (raw) saved = JSON.parse(raw); } catch(e){}
+    const src = (saved && Array.isArray(saved) && saved.length) ? saved : base;
+    const all = src.map(p => this.normalize(p));
+    this.setState({ loading:false, all });
+  }
+
+  persist(all){ try { localStorage.setItem(this.KEY, JSON.stringify(all)); } catch(e){} }
+  update(id, patch){
+    const all = this.state.all.map(p => p.id===id ? {...p, ...patch} : p);
+    this.persist(all); this.setState({ all });
+  }
+  showToast(msg){ this.setState({ toast: msg }); clearTimeout(this._tt); this._tt = setTimeout(() => this.setState({ toast:'' }), 2600); }
+
+  fmtDate(iso){
+    if (!iso) return '';
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
+    const [y,m,dd] = iso.split('-');
+    const mon = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return parseInt(dd,10) + ' ' + mon[+m-1] + ' ' + y;
+  }
+  barColor(p, status){
+    if (status === 'Completed' || p >= 100) return '#1F9D6B';
+    if (status === 'Hold') return '#B5791C';
+    if (p === 0) return '#9aa3af';
+    return this.props.accent || '#02A0C1';
+  }
+
+  filtered(){
+    const s = this.state.search.trim().toLowerCase();
+    return this.state.all.filter(p => {
+      if (this.state.fYear !== 'all' && (p.year||'') !== this.state.fYear) return false;
+      if (this.state.fCat !== 'all' && p.category !== this.state.fCat) return false;
+      if (this.state.fLead !== 'all' && p.lead !== this.state.fLead) return false;
+      if (this.state.fStatus !== 'all' && p.status !== this.state.fStatus) return false;
+      if (s) {
+        const hay = [p.name,p.code,p.task,p.lead,p.team,p.issue,p.category,p.owner].join(' ').toLowerCase();
+        if (!hay.includes(s)) return false;
+      }
+      return true;
+    });
+  }
+
+  decorate(p){
+    const sm = this.statusMeta[p.status] || this.statusMeta.Open;
+    const cm = this.catMeta(p.category);
+    const lc = this.leadColor(p.lead);
+    const prog = Math.max(0, Math.min(100, p.progress||0));
+    let overdue = false;
+    if (p.status !== 'Completed' && /^\d{4}-\d{2}-\d{2}$/.test(p.endDate)) {
+      overdue = new Date(p.endDate) < new Date(new Date().toISOString().slice(0,10));
+    }
+    const target = p.targetDate ? this.fmtDate(p.targetDate) : (p.endDate ? this.fmtDate(p.endDate) : '—');
+    return {
+      ...p,
+      progress: prog, progressW: prog + '%',
+      barColor: this.barColor(prog, p.status),
+      statusC: sm.c, statusBg: sm.bg, catC: cm.c, catBg: cm.bg, leadC: lc.c, leadBg: lc.bg,
+      team: p.team || '—',
+      owner: p.owner || '—',
+      ownerLine: p.owner ? ('Owner · ' + p.owner) : 'No owner set',
+      target, targetC: overdue ? '#C0392B' : '#374151', overdue,
+      hasIssue: !!(p.issue && p.issue.trim() && p.issue.trim().toUpperCase() !== 'N/A'),
+      onOpen: () => this.openDrawer(p.id),
+      onMail: (e) => { e.stopPropagation(); this.openEmail(this.state.all.find(x=>x.id===p.id)); },
+      onProgress: (e) => { const v=parseInt(e.target.value,10); this.update(p.id,{progress:v, status:(v>=100 && p.status!=='Completed')?'Completed':p.status}); },
+      onStatus: (e) => this.update(p.id, { status: e.target.value }),
+      onDragStart: (e) => { this._drag = p.id; if(e.dataTransfer) e.dataTransfer.effectAllowed='move'; },
+    };
+  }
+
+  openDrawer(id){
+    const p = this.state.all.find(x => x.id===id);
+    if (!p) return;
+    this.setState({ drawerOpen:true, isNew:false, naDate:new Date().toISOString().slice(0,10), naText:'', draft: JSON.parse(JSON.stringify(p)) });
+  }
+  closeDrawer(){ this.setState({ drawerOpen:false, draft:null, isNew:false }); }
+  setDraft(field, value){ this.setState(s => ({ draft: {...s.draft, [field]: value} })); }
+  syncHistory(d){ return d.activities.map(a => (a.date ? '['+a.date+'] ' : '') + a.text).join('\n'); }
+  saveDraft(){
+    const d = this.state.draft; if (!d) return;
+    d.history = this.syncHistory(d);
+    let all = this.state.isNew ? [{...d}, ...this.state.all] : this.state.all.map(p => p.id===d.id ? {...d} : p);
+    this.persist(all);
+    this.setState({ all, drawerOpen:false, draft:null, isNew:false });
+    this.showToast('Saved');
+  }
+  addNew(){
+    const id = 'p_new_' + Date.now();
+    const draft = { id, no:'', category:'Management System', task:'', code:'', name:'', lead:'DHI', team:'', owner:'', ownerEmail:'', progress:0, targetDate:'', startDate:new Date().toISOString().slice(0,10), endDate:'', status:'Open', history:'', plan:'', issue:'', folder:'', year:'2026', activities:[] };
+    this.setState({ drawerOpen:true, isNew:true, naDate:new Date().toISOString().slice(0,10), naText:'', draft });
+  }
+  deleteProject(){
+    const d = this.state.draft; if (!d) return;
+    if (this.state.isNew) { this.closeDrawer(); return; }
+    const all = this.state.all.filter(p => p.id !== d.id);
+    this.persist(all); this.setState({ all, drawerOpen:false, draft:null });
+    this.showToast('Deleted');
+  }
+
+  // activities
+  addActivity(){
+    const txt = this.state.naText.trim(); if (!txt) return;
+    const entry = { id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), date:this.state.naDate||'', text:txt };
+    this.setState(s => ({ draft: {...s.draft, activities:[...s.draft.activities, entry]}, naText:'', naDate:new Date().toISOString().slice(0,10) }));
+  }
+  updateActivity(id, field, value){
+    this.setState(s => ({ draft: {...s.draft, activities: s.draft.activities.map(a => a.id===id ? {...a, [field]:value} : a)} }));
+  }
+  removeActivity(id){
+    this.setState(s => ({ draft: {...s.draft, activities: s.draft.activities.filter(a => a.id!==id)} }));
+  }
+
+  // email
+  emailFor(code){ return (this._dir && this._dir[code]) || ''; }
+  buildEmail(p){
+    const to = p.ownerEmail || this.emailFor(p.lead) || '';
+    const teamCodes = (p.team||'').split(',').map(s=>s.trim()).filter(Boolean);
+    const ccList = [this.emailFor(p.lead), ...teamCodes.map(c=>this.emailFor(c))].filter(Boolean);
+    const cc = [...new Set(ccList)].join(', ');
+    const subject = '[MSBP Update] ' + (p.code? p.code+' — ':'') + p.name + ' (' + (p.progress||0) + '%)';
+    const acts = (p.activities||[]).slice(-5).map(a => '  • ' + (a.date? '['+this.fmtDate(a.date)+'] ':'') + a.text).join('\n') || '  • (no activity logged yet)';
+    const plan = (p.plan||'').trim() || '(none)';
+    const issue = (p.issue||'').trim() || '(none)';
+    const body =
+`Hi ${p.owner || 'team'},
+
+Here is the latest update for this project.
+
+Project   : ${p.name}
+Code      : ${p.code || '-'}
+Category  : ${p.category || '-'}
+Lead      : ${p.lead || '-'}   |   Team: ${p.team || '-'}
+Owner     : ${p.owner || '-'}
+Status    : ${p.status}
+Progress  : ${p.progress || 0}%
+Target    : ${p.targetDate || this.fmtDate(p.endDate) || '-'}
+
+Recent activity:
+${acts}
+
+Next plan:
+${plan}
+
+Open issues / risk:
+${issue}
+${p.folder ? '\nDocuments: ' + p.folder : ''}
+
+— Sent via MSBP Project Manager`;
+    return { to, cc, subject, body };
+  }
+  openEmail(p){ if(!p) return; this.setState({ emailOpen:true, emailProject:p, email:this.buildEmail(p) }); }
+  openEmailDraft(){ const d=this.state.draft; if(!d) return; const p={...d, history:this.syncHistory(d)}; this.setState({ emailOpen:true, emailProject:p, email:this.buildEmail(p) }); }
+  closeEmail(){ this.setState({ emailOpen:false, email:null, emailProject:null }); }
+  setEmail(field, value){ this.setState(s => ({ email: {...s.email, [field]:value} })); }
+  sendEmail(){
+    const e = this.state.email; if (!e) return;
+    const href = 'mailto:' + encodeURIComponent(e.to).replace(/%2C/g,',') + '?cc=' + encodeURIComponent(e.cc) + '&subject=' + encodeURIComponent(e.subject) + '&body=' + encodeURIComponent(e.body);
+    try { window.location.href = href; } catch(err){}
+    this.showToast('Opening email app…');
+    this.closeEmail();
+  }
+  copyEmail(){
+    const e = this.state.email; if (!e) return;
+    const txt = 'To: ' + e.to + '\nCc: ' + e.cc + '\nSubject: ' + e.subject + '\n\n' + e.body;
+    try { navigator.clipboard.writeText(txt); this.showToast('Email text copied'); } catch(err){ this.showToast('Copy failed'); }
+  }
+
+  renderVals(){
+    const accent = this.props.accent || '#02A0C1';
+    const tdPadV = (this.props.density === 'compact') ? '8px' : '13px';
+    const list = this.filtered();
+    const rows = list.map(p => this.decorate(p));
+    const all = this.state.all;
+
+    const counts = { total: all.length, completed:0, progress:0, open:0, hold:0, risk:0 };
+    let progSum = 0;
+    const today = new Date(new Date().toISOString().slice(0,10));
+    for (const p of all) {
+      if (p.status==='Completed') counts.completed++;
+      else if (p.status==='Progress') counts.progress++;
+      else if (p.status==='Open') counts.open++;
+      else if (p.status==='Hold') counts.hold++;
+      progSum += (p.progress||0);
+      const hasIssue = p.issue && p.issue.trim() && p.issue.trim().toUpperCase()!=='N/A';
+      const overdue = p.status!=='Completed' && /^\d{4}-\d{2}-\d{2}$/.test(p.endDate) && new Date(p.endDate) < today;
+      if (hasIssue || overdue) counts.risk++;
+    }
+    const avg = all.length ? Math.round(progSum / all.length) : 0;
+    const kpi = { total:counts.total, shown:list.length, avg, avgW:avg+'%', completed:counts.completed, completedPct: all.length?Math.round(counts.completed/all.length*100):0, progress:counts.progress, open:counts.open, hold:counts.hold, risk:counts.risk };
+
+    const cats = [...new Set(all.map(p => p.category).filter(Boolean))].sort();
+    const leadCodes = [...new Set(all.map(p => p.lead).filter(Boolean))].sort();
+    const years = [...new Set(all.map(p => p.year).filter(Boolean))].sort();
+
+    const boardCols = this.STATUSES.map(st => {
+      const cards = rows.filter(r => r.status === st);
+      return { status: st, c: this.statusMeta[st].c, count: cards.length, cards,
+        onDrop: (e) => { e.preventDefault(); if (this._drag) { this.update(this._drag, { status: st }); this._drag=null; } } };
+    });
+
+    let d = null, onD = {}, drawerTag = '';
+    if (this.state.draft) {
+      const dr = this.state.draft;
+      const sm = this.statusMeta[dr.status] || this.statusMeta.Open;
+      const prog = Math.max(0, Math.min(100, dr.progress||0));
+      const activities = (dr.activities||[]).map(a => ({
+        ...a,
+        onDate: (e) => this.updateActivity(a.id, 'date', e.target.value),
+        onText: (e) => this.updateActivity(a.id, 'text', e.target.value),
+        onRemove: () => this.removeActivity(a.id),
+      }));
+      d = { ...dr, progress:prog, progressW:prog+'%', barColor:this.barColor(prog, dr.status), statusC:sm.c, statusBg:sm.bg,
+            activities, activityCount: activities.length,
+            startLabel: dr.startDate ? this.fmtDate(dr.startDate) : 'Not set' };
+      const fields = ['name','code','task','team','owner','ownerEmail','category','lead','year','startDate','endDate','targetDate','plan','issue','folder'];
+      for (const f of fields) onD[f] = (e) => this.setDraft(f, e.target.value);
+      onD.progress = (e) => this.setDraft('progress', parseInt(e.target.value,10));
+      onD.status = (e) => this.setDraft('status', e.target.value);
+      drawerTag = this.state.isNew ? 'New project' : (dr.code || dr.category || 'Project');
+    }
+
+    const active='#fff', activeFg=accent, inactiveFg='#7A8696', sh='0 2px 6px rgba(20,50,90,.12)';
+    const isMobile = this.state.isMobile;
+    const isT = this.state.view==='table', isB = this.state.view==='board';
+    const kpiCols = isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)';
+    return {
+      loading: this.state.loading,
+      showTable: !this.state.loading && !isMobile && isT,
+      showBoard: !this.state.loading && !isMobile && isB,
+      showMobile: !this.state.loading && isMobile,
+      showToggle: !isMobile,
+      empty: !this.state.loading && rows.length===0 && (isMobile || isT),
+      kpiCols,
+      rows, boardCols, kpi, tdPadV,
+      cats, leadCodes, years, statuses: this.STATUSES,
+      search: this.state.search,
+      fYear:this.state.fYear, fCat:this.state.fCat, fLead:this.state.fLead, fStatus:this.state.fStatus,
+      onSearch:(e)=>this.setState({search:e.target.value}),
+      onYear:(e)=>this.setState({fYear:e.target.value}),
+      onCat:(e)=>this.setState({fCat:e.target.value}),
+      onLead:(e)=>this.setState({fLead:e.target.value}),
+      onStatusFilter:(e)=>this.setState({fStatus:e.target.value}),
+      viewTable:()=>this.setState({view:'table'}), viewBoard:()=>this.setState({view:'board'}),
+      tableBg:isT?active:'transparent', tableFg:isT?activeFg:inactiveFg, tableSh:isT?sh:'none',
+      boardBg:isB?active:'transparent', boardFg:isB?activeFg:inactiveFg, boardSh:isB?sh:'none',
+      stop:(e)=>e.stopPropagation(), allowDrop:(e)=>e.preventDefault(),
+      addNew:()=>this.addNew(), exportCsv:()=>this.exportCsv(),
+      drawerOpen:this.state.drawerOpen, d, onD, drawerTag,
+      closeDrawer:()=>this.closeDrawer(), saveDraft:()=>this.saveDraft(), deleteProject:()=>this.deleteProject(),
+      naDate:this.state.naDate, naText:this.state.naText,
+      onNaDate:(e)=>this.setState({naDate:e.target.value}), onNaText:(e)=>this.setState({naText:e.target.value}),
+      addActivity:()=>this.addActivity(),
+      openEmailDraft:()=>this.openEmailDraft(),
+      emailOpen:this.state.emailOpen, email:this.state.email,
+      emailMeta: this.state.emailProject ? ((this.state.emailProject.code? this.state.emailProject.code+' · ':'') + this.state.emailProject.name) : '',
+      onEmailTo:(e)=>this.setEmail('to',e.target.value), onEmailCc:(e)=>this.setEmail('cc',e.target.value),
+      onEmailSubject:(e)=>this.setEmail('subject',e.target.value), onEmailBody:(e)=>this.setEmail('body',e.target.value),
+      sendEmail:()=>this.sendEmail(), copyEmail:()=>this.copyEmail(), closeEmail:()=>this.closeEmail(),
+      toast: this.state.toast,
+    };
+  }
+
+  exportCsv(){
+    const cols = ['no','year','category','task','code','name','lead','team','owner','ownerEmail','progress','status','startDate','endDate','targetDate','history','plan','issue','folder'];
+    const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+    const lines = [cols.join(',')];
+    for (const p of this.filtered()) { const row = {...p, history: this.syncHistory(p)}; lines.push(cols.map(c => esc(row[c])).join(',')); }
+    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='MSBP-projects.csv'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+}
+</script>
+</body>
+</html>
