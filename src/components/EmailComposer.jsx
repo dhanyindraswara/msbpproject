@@ -79,7 +79,7 @@ export default function EmailComposer({ email, meta, onChange, onClose, onSend, 
         </div>
         <div style={{ flex: 1, overflowY: 'auto', padding: '18px 24px' }}>
           <label style={{ display: 'block', marginBottom: 13 }}>
-            <span style={label}>To (process owner / customer)</span>
+            <span style={label}>To (process owners / customer — comma-separated)</span>
             <input value={email.to} onChange={(e) => onChange('to', e.target.value)} className="msbp-in" style={{ ...input, color: '#1F1F1F' }} />
           </label>
           <label style={{ display: 'block', marginBottom: 13 }}>

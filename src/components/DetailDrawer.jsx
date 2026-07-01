@@ -206,14 +206,16 @@ export default function DetailDrawer({
             <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '.06em', color: '#0284A8', marginBottom: 10 }}>
               Process owner / customer
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
               <label style={{ display: 'block' }}>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a0ae' }}>Name / unit</span>
-                <input value={d.owner} onChange={onD.owner} placeholder="e.g. Finance & Accounting" className="msbp-in" style={textInput} />
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a0ae' }}>Name(s) / unit</span>
+                <input value={d.owner} onChange={onD.owner} placeholder="e.g. Finance & Accounting, Ratih Putri" className="msbp-in" style={textInput} />
               </label>
               <label style={{ display: 'block' }}>
-                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a0ae' }}>Email</span>
-                <input value={d.ownerEmail} onChange={onD.ownerEmail} placeholder="owner@banpuindo.co.id" className="msbp-in" style={{ ...textInput, color: '#3581E1' }} />
+                <span style={{ fontSize: 10.5, fontWeight: 700, color: '#94a0ae' }}>
+                  Email(s) — separate multiple with a comma
+                </span>
+                <input value={d.ownerEmail} onChange={onD.ownerEmail} placeholder="owner1@banpuindo.co.id, owner2@banpuindo.co.id" className="msbp-in" style={{ ...textInput, color: '#3581E1' }} />
               </label>
             </div>
           </div>

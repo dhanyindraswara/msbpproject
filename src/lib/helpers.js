@@ -123,10 +123,21 @@ export function decorate(p, { accent = ACCENT, handlers = {} } = {}) {
   }
 }
 
+// Split a free-text field into a clean list of email addresses.
+export function splitEmails(s) {
+  return String(s || '')
+    .split(/[;,\n]+/)
+    .map((x) => x.trim())
+    .filter(Boolean)
+}
+
 // Build the stakeholder email from a project + people directory.
 export function buildEmail(p, dir = {}) {
   const emailFor = (code) => dir[code] || ''
-  const to = p.ownerEmail || emailFor(p.lead) || ''
+  // Process owner email may hold several addresses — all go to "To".
+  const ownerEmails = splitEmails(p.ownerEmail)
+  const toList = ownerEmails.length ? ownerEmails : [emailFor(p.lead)].filter(Boolean)
+  const to = [...new Set(toList)].join(', ')
   const teamCodes = (p.team || '')
     .split(',')
     .map((s) => s.trim())
