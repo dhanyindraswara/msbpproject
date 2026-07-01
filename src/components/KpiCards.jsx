@@ -21,7 +21,7 @@ export default function KpiCards({ kpi, cols }) {
       <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#02A0C1' }}>Total projects</div>
         <div style={num}>{kpi.total}</div>
-        <div style={sub}>{kpi.shown} shown now</div>
+        <div style={sub}>{kpi.filtered ? 'of ' + kpi.grandTotal + ' total' : 'all projects'}</div>
       </div>
       <div className="msbp-kpi-card" style={card}>
         <div style={{ ...label, color: '#7A8696' }}>Avg progress</div>

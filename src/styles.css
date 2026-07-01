@@ -47,4 +47,6 @@ input[type=range].msbp-rng::-moz-range-thumb{width:15px;height:15px;border-radiu
   /* tighten the detail drawer */
   .msbp-drawer-pad{padding-left:15px !important;padding-right:15px !important}
   .msbp-drawer-3col{grid-template-columns:1fr 1fr !important}
+  /* summary report cards stack to one column */
+  .msbp-summary-grid{grid-template-columns:1fr !important;gap:14px !important}
 }

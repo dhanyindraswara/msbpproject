@@ -21,6 +21,7 @@ import FilterBar from './components/FilterBar.jsx'
 import ProjectTable from './components/ProjectTable.jsx'
 import BoardView from './components/BoardView.jsx'
 import MobileCards from './components/MobileCards.jsx'
+import SummaryView from './components/SummaryView.jsx'
 import DetailDrawer from './components/DetailDrawer.jsx'
 import EmailComposer from './components/EmailComposer.jsx'
 import Toast from './components/Toast.jsx'
@@ -77,6 +78,14 @@ export default function App() {
     [all, saveProject]
   )
 
+  const saveNote = useCallback(
+    (id, text) => {
+      updateProject(id, { nextTodo: text })
+      showToast('Note saved')
+    },
+    [updateProject, showToast]
+  )
+
   // --- filtering ---
   const filtered = useMemo(() => {
     const s = search.trim().toLowerCase()
@@ -126,12 +135,13 @@ export default function App() {
     [filtered, updateProject]
   )
 
-  // --- KPIs over ALL projects ---
+  // --- KPIs over the ACTIVE FILTER (falls back to all when no filter) ---
   const kpi = useMemo(() => {
-    const counts = { total: all.length, completed: 0, progress: 0, open: 0, hold: 0, risk: 0 }
+    const src = filtered
+    const counts = { completed: 0, progress: 0, open: 0, hold: 0, risk: 0 }
     let progSum = 0
     const today = new Date(todayISO())
-    for (const p of all) {
+    for (const p of src) {
       if (p.status === 'Completed') counts.completed++
       else if (p.status === 'Progress') counts.progress++
       else if (p.status === 'Open') counts.open++
@@ -139,20 +149,21 @@ export default function App() {
       progSum += p.progress || 0
       if (hasOpenIssue(p) || isOverdue(p, today)) counts.risk++
     }
-    const avg = all.length ? Math.round(progSum / all.length) : 0
+    const avg = src.length ? Math.round(progSum / src.length) : 0
     return {
-      total: counts.total,
-      shown: filtered.length,
+      total: src.length,
+      grandTotal: all.length,
+      filtered: src.length !== all.length,
       avg,
       avgW: avg + '%',
       completed: counts.completed,
-      completedPct: all.length ? Math.round((counts.completed / all.length) * 100) : 0,
+      completedPct: src.length ? Math.round((counts.completed / src.length) * 100) : 0,
       progress: counts.progress,
       open: counts.open,
       hold: counts.hold,
       risk: counts.risk,
     }
-  }, [all, filtered.length])
+  }, [filtered, all.length])
 
   const cats = useMemo(() => [...new Set(all.map((p) => p.category).filter(Boolean))].sort(), [all])
   const leadCodes = useMemo(() => [...new Set(all.map((p) => p.lead).filter(Boolean))].sort(), [all])
@@ -360,7 +371,7 @@ export default function App() {
   }, [])
 
   const drawerTag = isNew ? 'New project' : draft ? draft.code || draft.category || 'Project' : ''
-  const emptyResults = !loading && rows.length === 0 && (isMobile || view === 'table')
+  const emptyResults = !loading && rows.length === 0 && (isMobile || view === 'table' || view === 'summary')
   const kpiCols = isMobile ? 'repeat(2,1fr)' : 'repeat(5,1fr)'
   const emailMeta = emailProject
     ? (emailProject.code ? emailProject.code + ' · ' : '') + emailProject.name
@@ -394,7 +405,8 @@ export default function App() {
           cats={cats}
           leadCodes={leadCodes}
           statuses={STATUSES}
-          showToggle={!isMobile}
+          showToggle
+          isMobile={isMobile}
           view={view}
           onView={setView}
         />
@@ -424,13 +436,16 @@ export default function App() {
           </div>
         )}
 
-        {!loading && !isMobile && view === 'table' && (
+        {!loading && view === 'summary' && (
+          <SummaryView rows={rows} onSaveNote={saveNote} empty={emptyResults} />
+        )}
+        {!loading && view !== 'summary' && !isMobile && view === 'table' && (
           <ProjectTable rows={rows} statuses={STATUSES} tdPadV="13px" empty={emptyResults} />
         )}
-        {!loading && !isMobile && view === 'board' && (
+        {!loading && view !== 'summary' && !isMobile && view === 'board' && (
           <BoardView cols={boardCols} onAllowDrop={(e) => e.preventDefault()} />
         )}
-        {!loading && isMobile && (
+        {!loading && view !== 'summary' && isMobile && (
           <MobileCards rows={rows} statuses={STATUSES} empty={emptyResults} />
         )}
       </main>
