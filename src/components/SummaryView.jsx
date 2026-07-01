@@ -64,7 +64,7 @@ function NoteEditor({ initial, onSave }) {
   )
 }
 
-export default function SummaryView({ rows, onSaveNote, empty }) {
+export default function SummaryView({ rows, onSaveNote, onExport, empty }) {
   const total = rows.length
   const avg = total ? Math.round(rows.reduce((s, r) => s + (r.progress || 0), 0) / total) : 0
   const done = rows.filter((r) => r.status === 'Completed').length
@@ -82,14 +82,40 @@ export default function SummaryView({ rows, onSaveNote, empty }) {
             boxShadow: '0 10px 30px rgba(2,160,193,.28)',
           }}
         >
-          <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.85 }}>
-            Activity report
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 24px', marginTop: 8, fontSize: 13.5, fontWeight: 700 }}>
-            <span>{total} projects</span>
-            <span>· {avg}% avg progress</span>
-            <span>· {done} completed</span>
-            <span>· {activitiesTotal} activities logged</span>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.85 }}>
+                Activity report
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 24px', marginTop: 8, fontSize: 13.5, fontWeight: 700 }}>
+                <span>{total} projects</span>
+                <span>· {avg}% avg progress</span>
+                <span>· {done} completed</span>
+                <span>· {activitiesTotal} activities logged</span>
+              </div>
+            </div>
+            <button
+              onClick={onExport}
+              className="msbp-btn"
+              style={{
+                flex: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 7,
+                color: '#0a6f86',
+                background: '#fff',
+                fontSize: 12.5,
+                fontWeight: 800,
+                padding: '9px 15px',
+                borderRadius: 999,
+                border: 'none',
+                boxShadow: '0 4px 12px rgba(10,50,80,.18)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ⬇ Export Excel
+            </button>
           </div>
         </div>
       )}

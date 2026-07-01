@@ -168,6 +168,36 @@ ${p.folder ? '\nDocuments: ' + p.folder : ''}
   return { to, cc, subject, body }
 }
 
+// Rich, one-row-per-project shape for the Summary Excel export.
+export function buildSummaryRows(projects) {
+  return projects.map((p) => ({
+    No: p.no || '',
+    Code: p.code || '',
+    Project: p.name || '',
+    Category: p.category || '',
+    Lead: p.lead || '',
+    Team: p.team || '',
+    Owner: p.owner || '',
+    'Owner email': p.ownerEmail || '',
+    'Progress %': p.progress || 0,
+    Status: p.status || '',
+    Start: p.startDate || '',
+    End: p.endDate || '',
+    Target: p.targetDate || '',
+    'What was done': (p.activities || [])
+      .map((a) => (a.date ? '[' + a.date + '] ' : '') + a.text)
+      .join('\n'),
+    'Next plan': p.plan || '',
+    'Open issues / risk': p.issue || '',
+    'Next to do': p.nextTodo || '',
+    Folder: p.folder || '',
+    Year: p.year || '',
+  }))
+}
+
+// Column widths (chars) for the export sheet, in the order above.
+export const SUMMARY_COL_WIDTHS = [5, 9, 34, 20, 7, 10, 16, 24, 10, 11, 12, 12, 12, 48, 34, 30, 30, 22, 7]
+
 export function buildCsv(projects) {
   const cols = [
     'no', 'year', 'category', 'task', 'code', 'name', 'lead', 'team', 'owner', 'ownerEmail',

@@ -8,6 +8,8 @@ import {
   barColor,
   buildEmail,
   buildCsv,
+  buildSummaryRows,
+  SUMMARY_COL_WIDTHS,
   syncHistory,
   newActivityId,
   isOverdue,
@@ -321,6 +323,28 @@ export default function App() {
     }
   }
 
+  // --- Excel export (Summary page) — active filter only, lazy-loads xlsx ---
+  async function exportExcel() {
+    const src = filtered
+    if (!src.length) {
+      showToast('Nothing to export')
+      return
+    }
+    try {
+      const XLSX = await import('xlsx')
+      const ws = XLSX.utils.json_to_sheet(buildSummaryRows(src))
+      ws['!cols'] = SUMMARY_COL_WIDTHS.map((wch) => ({ wch }))
+      const wb = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(wb, ws, 'Summary')
+      const stamp = new Date().toISOString().slice(0, 10)
+      XLSX.writeFile(wb, `MSBP-summary-${stamp}.xlsx`)
+      showToast('Excel exported (' + src.length + ' projects)')
+    } catch (err) {
+      console.warn('excel export failed', err)
+      showToast('Export failed')
+    }
+  }
+
   // --- CSV export ---
   function exportCsv() {
     const csv = buildCsv(filtered)
@@ -437,7 +461,7 @@ export default function App() {
         )}
 
         {!loading && view === 'summary' && (
-          <SummaryView rows={rows} onSaveNote={saveNote} empty={emptyResults} />
+          <SummaryView rows={rows} onSaveNote={saveNote} onExport={exportExcel} empty={emptyResults} />
         )}
         {!loading && view !== 'summary' && !isMobile && view === 'table' && (
           <ProjectTable rows={rows} statuses={STATUSES} tdPadV="13px" empty={emptyResults} />
