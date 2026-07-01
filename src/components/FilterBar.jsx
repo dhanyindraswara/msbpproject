@@ -25,11 +25,13 @@ export default function FilterBar({
   leadCodes,
   statuses,
   showToggle,
+  isMobile,
   view,
   onView,
 }) {
-  const isT = view === 'table'
-  const isB = view === 'board'
+  const options = isMobile
+    ? [['table', 'Cards'], ['summary', 'Summary']]
+    : [['table', 'Table'], ['board', 'Board'], ['summary', 'Summary']]
   const toggleBtn = (active) => ({
     cursor: 'pointer',
     border: 'none',
@@ -111,12 +113,11 @@ export default function FilterBar({
       </select>
       {showToggle && (
         <div style={{ display: 'flex', background: '#E9EDF1', borderRadius: 999, padding: 3, gap: 2 }}>
-          <button onClick={() => onView('table')} style={toggleBtn(isT)}>
-            Table
-          </button>
-          <button onClick={() => onView('board')} style={toggleBtn(isB)}>
-            Board
-          </button>
+          {options.map(([v, label]) => (
+            <button key={v} onClick={() => onView(v)} style={toggleBtn(view === v)}>
+              {label}
+            </button>
+          ))}
         </div>
       )}
     </div>
